@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"os"
 
 	tangent "github.com/dfsantos-source/Tangent"
 	"github.com/go-chi/chi/v5"
@@ -12,6 +13,9 @@ import (
 type Server struct {
 	server *http.Server
 	router *chi.Mux
+
+	MapboxUtil tangent.Util
+	YelpUtil   tangent.Util
 
 	UserService     tangent.UserService
 	LocationService tangent.LocationService
@@ -24,6 +28,9 @@ func CreateServer() *Server {
 		server: &http.Server{},
 		router: chi.NewRouter(),
 	}
+
+	s.MapboxUtil = *tangent.CreateUtil(os.Getenv("MAP_BOXTOKEN"))
+	s.YelpUtil = *tangent.CreateUtil(os.Getenv("MAP_BOXTOKEN"))
 
 	s.registerUserRoutes(s.router)
 
