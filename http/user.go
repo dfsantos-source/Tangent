@@ -1,8 +1,8 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
+	"strconv"
 
 	tangent "github.com/dfsantos-source/Tangent"
 	"github.com/gin-gonic/gin/render"
@@ -10,10 +10,25 @@ import (
 )
 
 func (s *Server) registerUserRoutes(r *chi.Mux) {
-	r.Get("/users/:id", s.getUsers)
+	r.Get("/users/{id}", s.getUser)
 	r.Get("/users", s.getUsers)
 	r.Post("/users", s.createUser)
-	r.Delete("/users/:id", s.deleteUser)
+	r.Delete("/users/{id}", s.deleteUser)
+}
+
+func (s *Server) getUser(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	intId, err := strconv.Atoi(id)
+	user, err := s.UserService.User(intId)
+	if err != nil {
+		render.WriteJSON(w, err)
+		return
+	}
+	if user == nil {
+		render.WriteJSON(w, []byte("User was nil"))
+		return
+	}
+	render.WriteJSON(w, user)
 }
 
 func (s *Server) getUsers(w http.ResponseWriter, r *http.Request) {
@@ -22,27 +37,36 @@ func (s *Server) getUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if users == nil {
-		fmt.Printf("UserService.Users() returns nil")
+		w.Write([]byte("Users were nil"))
 		return
 	}
 	render.WriteJSON(w, users)
 }
 
 func (s *Server) createUser(w http.ResponseWriter, r *http.Request) {
+	// TODO: endpoint parsing instead of hard-coding here
 	user := &tangent.User{
 		Name:     "Bob Marley",
 		Email:    "bobmarley@umass.edu",
 		Password: "123",
 	}
-	err := s.UserService.CreateUser(user)
+	id, err := s.UserService.CreateUser(user)
 	if err != nil {
-		panic("error")
+		w.Write([]byte("Error"))
+		return
 	}
-	w.Write([]byte("Hello World!"))
+	user.ID = id
+	user.Password = ""
+	render.WriteJSON(w, user)
 }
 
 func (s *Server) deleteUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello World!"))
+	err := s.UserService.DeleteUser(1)
+	if err != nil {
+		w.Write([]byte("Error"))
+		return
+	}
+	render.WriteJSON(w, nil)
 }
 
 func Error(w http.ResponseWriter, r *http.Request, err error) {

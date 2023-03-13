@@ -10,7 +10,7 @@ import (
 )
 
 type DB struct {
-	db  *sql.DB
+	sql *sql.DB
 	DSN string
 }
 
@@ -44,12 +44,12 @@ func CreateDB() *DB {
 
 // connect to database
 func (db *DB) OpenDB() (err error) {
-	db.db, err = sql.Open("postgres", db.DSN)
+	db.sql, err = sql.Open("postgres", db.DSN)
 	if err != nil {
 		panic(err)
 	}
 
-	ping := db.db.Ping()
+	ping := db.sql.Ping()
 	if ping != nil {
 		panic(ping)
 	}
@@ -65,16 +65,17 @@ func (db *DB) InitDB() {
 	// insert SQL code here to initialze tables
 
 	query := `
+		DROP TABLE Users;
+
 		CREATE TABLE if not exists Users(
 			id Serial PRIMARY KEY,
 			name VARCHAR(255),
 			email VARCHAR(255),
 			password VARCHAR(255),
-			created_at VARCHAR(255),
-			updated_at VARCHAR(255)
+			timestamp timestamp default current_timestamp
 		);
 	`
-	_, err := db.db.Query(query)
+	_, err := db.sql.Query(query)
 	if err != nil {
 		panic(err)
 	}

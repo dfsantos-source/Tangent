@@ -17,8 +17,7 @@ type Server struct {
 	MapboxUtil tangent.Util
 	YelpUtil   tangent.Util
 
-	UserService     tangent.UserService
-	LocationService tangent.LocationService
+	UserService tangent.UserService
 }
 
 // creates an instance of a server
